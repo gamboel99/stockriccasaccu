@@ -3,29 +3,36 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>RICCAS ACCU - Aplikasi Stok (Final)</title>
+<title>RICCAS ACCU - Aplikasi Stok (Terang)</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="codes.js"></script>
 <style>
-  :root{}
-  body{background:linear-gradient(180deg,#000 0%,#111 100%);color:#ddd;font-family:Inter,Arial,sans-serif;margin:0;padding:20px}
+  :root{
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --muted: #333333;
+    --accent: #ff7a00;
+    --border: #e2e8f0;
+  }
+  body{background:var(--bg);color:var(--muted);font-family:Inter,Arial,sans-serif;margin:0;padding:20px}
   .container{max-width:1200px;margin:0 auto}
-  header{display:flex;align-items:center;gap:16px;padding:12px 16px;background:#151515;border-radius:10px}
-  header img{height:72px;width:72px;border-radius:50%;object-fit:cover;border:3px solid #fff}
-  header h1{margin:0;font-size:20px;color:#fff}
+  header{display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--card);border-radius:10px;box-shadow:0 2px 8px rgba(16,24,40,0.06)}
+  header img{height:72px;width:72px;border-radius:8px;object-fit:cover;border:2px solid #fff}
+  header h1{margin:0;font-size:20px;color:var(--muted)}
   .top-row{display:flex;gap:12px;margin-top:16px;align-items:flex-start}
-  .card{background:#111;padding:12px;border-radius:10px;flex:1;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
-  form label{display:block;color:#aaa;font-size:13px;margin-top:6px}
-  input[type=text],input[list],input[type=number],select{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #333;background:#0b0b0b;color:#ddd}
-  button{background:#ff7a00;color:#111;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-  .small{font-size:13px;color:#aaa}
-  table{width:100%;border-collapse:collapse;margin-top:10px}
-  th,td{padding:8px;border:1px solid #222;text-align:center;color:#ddd}
-  th{background:#0e0e0e;color:#ff7a00}
+  .card{background:var(--card);padding:14px;border-radius:10px;flex:1;box-shadow:0 6px 18px rgba(16,24,40,0.06);border:1px solid var(--border)}
+  form label{display:block;color:var(--muted);font-size:13px;margin-top:8px}
+  input[type=text],input[list],input[type=number],select{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted)}
+  button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .small{font-size:13px;color:#666}
+  table{width:100%;border-collapse:collapse;margin-top:10px;background:transparent}
+  th,td{padding:8px;border:1px solid var(--border);text-align:center;color:var(--muted);background:transparent}
+  th{background:#fff;color:var(--accent);font-weight:600}
   .category-title{display:flex;align-items:center;justify-content:space-between}
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .export-btn{background:transparent;border:1px solid #ff7a00;color:#ff7a00;padding:6px 10px;border-radius:8px}
+  .export-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:6px 10px;border-radius:8px}
   footer{text-align:center;color:#777;margin-top:16px;font-size:12px}
+  @media (max-width:900px){ .top-row{flex-direction:column} }
 </style>
 </head>
 <body>
@@ -65,13 +72,13 @@
 
         <div style="margin-top:10px;display:flex;gap:8px;">
           <button type="submit">Simpan</button>
-          <button type="button" onclick="resetData()">Reset Semua</button>
+          <button type="button" onclick="resetData()" style="background:#ef4444">Reset Semua</button>
         </div>
       </form>
 
-      <hr style="border-color:#222;margin:10px 0">
+      <hr style="border-color:var(--border);margin:10px 0">
 
-      <h4>Tambah Item Baru (masuk kategori: Lain_lain)</h4>
+      <h4>Tambah Item Baru (masuk kategori: LAIN_LAIN)</h4>
       <form id="formAdd">
         <label>Nama / Kode Item</label>
         <input type="text" id="newItem" placeholder="contoh: AIR ACCU"/>
@@ -160,7 +167,7 @@ function renderAll() {
     if (filterCat && filterCat !== cat) continue;
     const panel = document.createElement('div'); panel.className='card'; panel.style.marginBottom='12px';
     const title = document.createElement('div'); title.className='category-title';
-    title.innerHTML = `<strong style="color:#ff7a00">${cat.replace(/_/g,' ')}</strong><span class="small">Jumlah item: ${arr.length}</span>`;
+    title.innerHTML = `<strong style="color:var(--accent)">${cat.replace(/_/g,' ')}</strong><span class="small">Jumlah item: ${arr.length}</span>`;
     panel.appendChild(title);
     const table = document.createElement('table');
     const thead = document.createElement('thead'); thead.innerHTML = '<tr><th>Kode Barang</th><th>Stok Awal</th><th>Stok Sekarang</th><th>Harga Terakhir</th></tr>';
