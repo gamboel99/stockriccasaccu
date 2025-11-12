@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RICCAS ACCU - Aplikasi Stok</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="codes.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f7f7f7; color: #222; }
+    header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    header img { height: 70px; margin-right: 15px; border-radius: 50%; }
+    h1 { text-align: center; color: #111; }
+    form, table { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: center; }
+    th { background: #eee; }
+    .actions button { margin-right: 10px; padding: 6px 10px; }
+    input, select { padding: 6px; margin: 4px; }
+    #filter { width: 50%; margin-top: 10px; padding: 6px; }
+    .container { max-width: 1000px; margin: auto; }
+    .section { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="Desain tanpa judul (7).png" alt="Logo RICCAS ACCU">
+      <h1>RICCAS ACCU<br><small>Aplikasi Stok Barang</small></h1>
+    </header>
+
+    <section class="section">
+      <form id="formInput">
+        <label>Kode Barang:</label>
+        <input list="kodeList" id="kode" required placeholder="Pilih / ketik kode barang" />
+        <datalist id="kodeList"></datalist>
+
+        <label>Tipe:</label>
+        <select id="tipe">
+          <option value="masuk">Masuk</option>
+          <option value="keluar">Keluar</option>
+        </select>
+
+        <label>Qty:</label>
+        <input type="number" id="qty" min="1" value="1" required />
+
+        <label>Harga Satuan:</label>
+        <input type="number" id="price" placeholder="Opsional" />
+
+        <button type="submit">Simpan</button>
+      </form>
+    </section>
+
+    <section class="section">
+      <form id="formAddCode">
+        <label>Tambah Unit / Produk Baru:</label>
+        <input type="text" id="newCode" placeholder="Misal: AIR ACCU, AIR ZUUR" required />
+        <button type="submit">Tambah Kode</button>
+      </form>
+    </section>
+
+    <section class="section actions">
+      <input type="text" id="filter" placeholder="🔍 Cari kode barang..." />
+      <button onclick="exportExcel()">📊 Export Excel</button>
+      <button onclick="resetData()">🗑️ Reset Semua</button>
+    </section>
+
+    <section class="section">
+      <h3>📋 Daftar Stok</h3>
+      <table id="tableStock">
+        <thead>
+          <tr><th>Kode</th><th>Stok</th><th>Harga Terakhir</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h3>🕓 Riwayat Transaksi</h3>
+      <table id="tableHist">
+        <thead>
+          <tr><th>Waktu</th><th>Kode</th><th>Tipe</th><th>Qty</th><th>Harga</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+
+<script>
+const STORAGE_KEY = "stokAki_v2";
+let data = { items: {}, history: [] };
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) data = JSON.parse(raw);
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function updateTable() {
+  const tbodyStock = document.querySelector("#tableStock tbody");
+  const tbodyHist = document.querySelector("#tableHist tbody");
+  const filter = document.querySelector("#filter").value.toLowerCase();
+
+  tbodyStock.innerHTML = "";
+  Object.values(data.items)
+    .filter(it => it.kode.toLowerCase().includes(filter))
+    .forEach(it => {
+      const row = `<tr>
+        <td>${it.kode}</td>
+        <td>${it.stock}</td>
+        <td>${it.last_price ? it.last_price.toLocaleString() : "-"}</td>
+      </tr>`;
+      tbodyStock.innerHTML += row;
+    });
+
+  tbodyHist.innerHTML = data.history.map(h => `
+    <tr>
+      <td>${new Date(h.time).toLocaleString()}</td>
+      <td>${h.kode}</td>
+      <td>${h.tipe}</td>
+      <td>${h.qty}</td>
+      <td>${h.price?.toLocaleString() ?? "-"}</td>
+    </tr>`).join("");
+}
+
+function exportExcel() {
+  const summary = Object.values(data.items).map(it => ({
+    Kode: it.kode,
+    Stok: it.stock,
+    "Harga Terakhir": it.last_price ?? ""
+  }));
+  const history = data.history.map(h => ({
+    Waktu: new Date(h.time).toLocaleString(),
+    Kode: h.kode,
+    Tipe: h.tipe,
+    Qty: h.qty,
+    Harga: h.price ?? ""
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), "Stok");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(history), "Riwayat");
+  XLSX.writeFile(wb, "Laporan_Stok_RICCAS_ACCU.xlsx");
+}
+
+function resetData() {
+  if (confirm("Hapus semua data?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    data = { items: {}, history: [] };
+    updateTable();
+  }
+}
+
+function loadCodes() {
+  const list = document.querySelector("#kodeList");
+  list.innerHTML = "";
+  CODES.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    list.appendChild(opt);
+  });
+}
+
+document.querySelector("#formInput").addEventListener("submit", e => {
+  e.preventDefault();
+  const kode = document.querySelector("#kode").value.trim();
+  const tipe = document.querySelector("#tipe").value;
+  const qty = parseInt(document.querySelector("#qty").value);
+  const price = document.querySelector("#price").value ? Number(document.querySelector("#price").value) : null;
+
+  if (!kode) return alert("Masukkan kode barang!");
+
+  if (!data.items[kode]) data.items[kode] = { kode, stock: 0, last_price: price };
+  if (tipe === "masuk") data.items[kode].stock += qty;
+  else data.items[kode].stock -= qty;
+
+  if (price) data.items[kode].last_price = price;
+
+  data.history.unshift({ time: Date.now(), kode, tipe, qty, price });
+  saveData();
+  updateTable();
+  e.target.reset();
+  document.querySelector("#qty").value = 1;
+});
+
+document.querySelector("#filter").addEventListener("input", updateTable);
+
+document.querySelector("#formAddCode").addEventListener("submit", e => {
+  e.preventDefault();
+  const newCode = document.querySelector("#newCode").value.trim();
+  if (!newCode) return;
+  if (!CODES.includes(newCode)) {
+    CODES.push(newCode);
+    loadCodes();
+    alert("Kode baru ditambahkan: " + newCode);
+  } else {
+    alert("Kode sudah ada!");
+  }
+  e.target.reset();
+});
+
+loadData();
+loadCodes();
+updateTable();
+</script>
+</body>
+</html>
